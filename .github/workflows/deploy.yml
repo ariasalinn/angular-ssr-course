@@ -1,0 +1,32 @@
+name: Deploy Frontend to VPS
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to VPS via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          set -e
+          cd /srv/etsena/frontend_site
+          echo "📥 Pulling latest changes..."
+          git pull origin main || git pull origin master
+          
+          cd /srv/etsena
+          echo "🔨 Building frontend..."
+          docker compose build frontend
+          
+          echo "🚀 Deploying frontend..."
+          docker compose up -d --force-recreate frontend
+          
+          echo "✅ Deployment complete!"
+          docker compose ps
