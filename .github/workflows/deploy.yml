@@ -70,9 +70,13 @@ jobs:
             
             echo "🚀 Deploying Frontend..."
             cd /srv/etsena
+
+            # Calculer le SHA court (7 premiers caractères)
+            FULL_SHA="${{ github.sha }}"
+            SHORT_SHA="${FULL_SHA:0:7}"
             
             # Définir le tag SHA
-            export IMAGE_TAG="sha-${{ github.sha }}"
+            export IMAGE_TAG="sha-$SHORT_SHA"
             echo "IMAGE_TAG=${IMAGE_TAG}" > .env.deploy.frontend
             echo "📦 Frontend version: ${IMAGE_TAG}"
             
@@ -87,10 +91,10 @@ jobs:
             
             # Pull image depuis GHCR
             echo "📥 Pulling image from GHCR..."
-            docker pull ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+            docker pull ghcr.io/${{ github.repository }}:sha-$SHORT_SHA
             
             # Tag local pour docker-compose
-            docker tag ghcr.io/${{ github.repository }}:sha-${{ github.sha }} etsena-frontend:latest
+            docker tag ghcr.io/${{ github.repository }}:sha-$SHORT_SHA etsena-frontend:latest
             
             # Déploiement zero-downtime
             echo "🔄 Deploying with zero-downtime..."
@@ -113,7 +117,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Deployment successful - sha-${{ github.sha }}"
+            echo "✅ Deployment successful - sha-$SHORT_SHA"
           else
             echo "❌ Deployment failed"
           fi
